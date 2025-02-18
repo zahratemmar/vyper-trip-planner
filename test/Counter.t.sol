@@ -1,24 +1,31 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
-
-import {Test, console} from "forge-std/Test.sol";
-import {Counter} from "../src/Counter.sol";
+import {Test, console} from "../lib/forge-std/src/Test.sol";
+import "../utils/VyperDeployer.sol";
+import "./interface/ITripPlanner.sol";
 
 contract CounterTest is Test {
-    Counter public counter;
+    VyperDeployer dep = new VyperDeployer();
+    ITripPlanner tripContract ;
 
     function setUp() public {
-        counter = new Counter();
-        counter.setNumber(0);
+        tripContract = ITripPlanner(dep.deployContract("tripPlanner"));
     }
 
-    function test_Increment() public {
-        counter.increment();
-        assertEq(counter.number(), 1);
+    function test_tripPlanning() public {
+        tripContract.add_transportation(12, "oran" ,20250212,20250228,3);
+        tripContract.add_guiding(7, "oran" ,20250213,20250222,2);
+        tripContract.add_housing(3, "oran" ,20250214,20250224,7);
+        (uint id, uint hid,uint gid,uint tid, string memory location, uint startDate, uint endDate, uint256 price) = tripContract.get_planned_trip(1);
+        assertEq(id, 1);
+        assertEq(hid, 3);
+        assertEq(gid, 7);
+        assertEq(tid, 12);
+        assertEq(startDate, 20250214);
+        assertEq(endDate, 20250222);
+        assertEq(location, "oran");
+        assertEq(price, ((7+3+2)*8));
+
     }
 
-    function testFuzz_SetNumber(uint256 x) public {
-        counter.setNumber(x);
-        assertEq(counter.number(), x);
-    }
 }
